@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Твоя награда </title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fde8d8 0%, #fcd6e0 40%, #f9c6d4 70%, #f5b8c8 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.25rem;
+    overflow-x: hidden;
+  }
+
+  /* Floating decorative circles */
+  body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before {
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, #f9a8c9, transparent);
+    top: -80px; right: -80px;
+  }
+  body::after {
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, #fbbf8c, transparent);
+    bottom: -60px; left: -60px;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ─── BEFORE OPEN ─── */
+  .scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .scene.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95);
+  }
+
+  .headline {
+    text-align: center;
+    font-size: clamp(1rem, 5vw, 1.2rem);
+    font-weight: 600;
+    color: #a0526a;
+    line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+    max-width: 320px;
+  }
+
+  .hint {
+    font-size: 0.82rem;
+    color: #b87090;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+  }
+
+  /* ─── ENVELOPE ─── */
+  .envelope-wrap {
+    position: relative;
+    width: clamp(220px, 65vw, 280px);
+    height: clamp(160px, 47vw, 200px);
+    cursor: pointer;
+    transition: transform 0.18s ease;
+    filter: drop-shadow(0 8px 24px rgba(180,80,110,0.18));
+  }
+  .envelope-wrap:hover { transform: scale(1.04) translateY(-3px); }
+  .envelope-wrap:active { transform: scale(0.98); }
+
+  /* envelope body */
+  .env-body {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, #fff5f8 0%, #fce4ec 100%);
+    border-radius: 6px 6px 14px 14px;
+    border: 1.5px solid #f4b8cb;
+    overflow: hidden;
+  }
+
+  /* bottom-left triangle */
+  .env-body::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    border-style: solid;
+    border-width: 0 0 calc(clamp(160px,47vw,200px) * 0.55) calc(clamp(220px,65vw,280px) * 0.5);
+    border-color: transparent transparent #f8cad8 transparent;
+  }
+  /* bottom-right triangle */
+  .env-body::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    border-style: solid;
+    border-width: 0 calc(clamp(220px,65vw,280px) * 0.5) calc(clamp(160px,47vw,200px) * 0.55) 0;
+    border-color: transparent #f8cad8 transparent transparent;
+  }
+
+  /* flap */
+  .env-flap {
+    position: absolute;
+    top: 0; left: -1px; right: -1px;
+    height: 55%;
+    background: linear-gradient(170deg, #fce8f0 0%, #f9d0e0 100%);
+    border-radius: 6px 6px 0 0;
+    border: 1.5px solid #f4b8cb;
+    border-bottom: none;
+    transform-origin: top center;
+    transform: rotateX(0deg);
+    transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    /* triangle shape */
+    clip-path: polygon(0 0, 100% 0, 50% 100%);
+  }
+
+  /* heart on flap */
+  .env-heart {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    z-index: 11;
+    transition: opacity 0.3s ease;
+    user-select: none;
+  }
+
+  /* open state */
+  .envelope-wrap.open .env-flap {
+    transform: rotateX(-180deg);
+    z-index: 1;
+  }
+  .envelope-wrap.open .env-heart { opacity: 0; }
+
+  /* ─── LETTER ─── */
+  .letter {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%) translateY(0%);
+    width: 85%;
+    background: #fffbfc;
+    border-radius: 8px;
+    z-index: 5;
+    padding: 1.2rem 1rem 0.8rem;
+    box-shadow: 0 2px 12px rgba(180,80,110,0.1);
+    border: 1px solid #f7d0dd;
+    opacity: 0;
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.3s,
+                opacity 0.5s ease 0.3s;
+    pointer-events: none;
+  }
+  .letter-lines {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .letter-line {
+    height: 5px; border-radius: 2px;
+    background: linear-gradient(90deg, #f9d0de, #fce8f0);
+  }
+  .letter-line:last-child { width: 60%; }
+
+  .envelope-wrap.open .letter {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-120%);
+  }
+
+  /* ─── LETTER CARD (full) ─── */
+  .letter-card {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%) translateY(60px) scale(0.9);
+    width: 100%;
+    max-width: 420px;
+    background: #fffbfc;
+    border-radius: 20px;
+    padding: 2rem 1.6rem 2rem;
+    box-shadow: 0 12px 40px rgba(180,80,110,0.14);
+    border: 1px solid #f7d0dd;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease 0.75s, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.75s;
+    z-index: 20;
+  }
+  .letter-card.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    pointer-events: all;
+    position: relative;
+    top: auto; left: auto;
+    transform: none;
+  }
+
+  .letter-deco-top {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 0.6rem;
+    line-height: 1;
+  }
+
+  .letter-title {
+    text-align: center;
+    font-size: clamp(1.05rem, 5vw, 1.25rem);
+    font-weight: 700;
+    color: #c2566e;
+    margin-bottom: 1.2rem;
+    line-height: 1.4;
+  }
+
+  .letter-divider {
+    width: 48px; height: 2px;
+    background: linear-gradient(90deg, #f9a8c9, #fbbf8c);
+    border-radius: 2px;
+    margin: 0 auto 1.2rem;
+  }
+
+  .letter-body {
+    font-size: clamp(0.92rem, 3.8vw, 1rem);
+    color: #7a4558;
+    line-height: 1.85;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .letter-footer {
+    margin-top: 1.6rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #d4849a;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  /* sparkle dots */
+  .sparkles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 30;
+    overflow: hidden;
+  }
+  .spark {
+    position: absolute;
+    border-radius: 50%;
+    animation: sparkle 1.2s ease forwards;
+  }
+  @keyframes sparkle {
+    0%   { transform: scale(0) translate(0,0); opacity: 1; }
+    80%  { opacity: 0.8; }
+    100% { transform: scale(1) translate(var(--tx), var(--ty)); opacity: 0; }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+  .floating { animation: float 3.5s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="sparkles" id="sparkles"></div>
+
+<div class="page" id="page">
+
+  <!-- SCENE: before open -->
+  <div class="scene" id="scene">
+    <p class="headline">Для АРАЙКИ <br> </p>
+
+    <div class="envelope-wrap floating" id="envelope" onclick="openEnvelope()">
+      <div class="env-body"></div>
+      <div class="env-flap"></div>
+      <div class="env-heart">💌</div>
+      <div class="letter">
+        <div class="letter-lines">
+          <div class="letter-line"></div>
+          <div class="letter-line"></div>
+          <div class="letter-line"></div>
+          <div class="letter-line" style="width:45%"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">(Нажми на конверт, чтобы открыть)</p>
+  </div>
+
+  <!-- LETTER CARD: after open -->
+  <div class="letter-card" id="letterCard">
+    <div class="letter-deco-top"></div>
+    <h1 class="letter-title">For Araika</h1>
+    <div class="letter-divider"></div>
+    <p class="letter-body">
+       🌸<br><br>
+      Для той самой сигмы которая каждый день учится и старается во благо будущего и встает так рано.
+Завтра на ент желаю тебе набрать желаемые 100/140 а то и больше😝.Мотивашки<br><br>
+      "Если ты сейчас уснешь, то тебе, конечно, приснится твоя мечта, но если же ты сейчас выучишься, то воплотишь свою мечту в ЖиЗНЬ."<br><br>
+       "Пока ты ленишься, кто-то другой учится, и завтра именно он займёт то место, о котором мечтаешь ты"<br><br>
+      "Арайка сила - остальные могила"<br>
+	""<br><br>
+      Как бы тяжело не было, твои друзья рядом, которые готовы помочь в любой беде.
+ Когда станет тяжело, скучно или захочется опустить руки во время учёбы, просто заходи на этот сайт и говори нам. И все у тебя получится<br><br>
+	 
+      .<br>
+    </p>
+    <div class="letter-footer">💛 &nbsp; nurda top kak vsegda &nbsp; 💛</div>
+  </div>
+
+</div>
+
+<script>
+  let opened = false;
+
+  function openEnvelope() {
+    if (opened) return;
+    opened = true;
+
+    const envelope = document.getElementById('envelope');
+    const scene    = document.getElementById('scene');
+    const card     = document.getElementById('letterCard');
+
+    envelope.classList.add('open');
+    envelope.style.cursor = 'default';
+
+    spawnSparkles(envelope);
+
+    setTimeout(() => {
+      scene.classList.add('hidden');
+    }, 700);
+
+    setTimeout(() => {
+      card.classList.add('visible');
+    }, 900);
+  }
+
+  function spawnSparkles(el) {
+    const container = document.getElementById('sparkles');
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const colors = ['#f9a8c9','#fbbf8c','#fce4ec','#f472b6','#fde68a','#fca5a5','#c4b5fd'];
+
+    for (let i = 0; i < 22; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      const size = Math.random() * 10 + 5;
+      const angle = Math.random() * 2 * Math.PI;
+      const dist  = Math.random() * 120 + 40;
+      spark.style.cssText = `
+        width:${size}px;height:${size}px;
+        left:${cx - size/2}px;top:${cy - size/2}px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        --tx:${Math.cos(angle)*dist}px;
+        --ty:${Math.sin(angle)*dist}px;
+        animation-delay:${Math.random()*0.2}s;
+        animation-duration:${0.8+Math.random()*0.6}s;
+      `;
+      container.appendChild(spark);
+      setTimeout(() => spark.remove(), 1800);
+    }
+  }
+</script>
+</body>
+</html>
